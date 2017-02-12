@@ -2,6 +2,7 @@ package Code;
 // Needs a package declaration to move to another folder
 
 import java.util.Random;
+import java.util.Vector;
 
 import edu.cmu.ri.createlab.terk.robot.finch.Finch;
 
@@ -12,35 +13,50 @@ import edu.cmu.ri.createlab.terk.robot.finch.Finch;
  */
 
 public class demo2
-   {
+{
 	//Rotate finch for 1.5 sec 
-	public static void rotate(Finch myFinch) {
+	public static void randomRotate(Finch myFinch) {
 		Random rand = new Random();
 		int randSpeed = (rand.nextInt() % 210) + 40;
 		myFinch.setWheelVelocities(randSpeed, -randSpeed, 1500);
 	}
 	
+	public static void rotate(Finch myFinch, LightData initialData){
+		for(int i = 0; i<7; i++){
+			myFinch.setWheelVelocities(100,-100, 500);
+			LightData newData = new LightData(myFinch.getLightSensors());
+			if(initialData.getSum()<newData.getSum()){
+				initialData.setData(newData);
+				myFinch.setWheelVelocities(200, 200, 1000);
+				break;
+			}
+		}
+	}
 	
-   public static void main(final String[] args) throws InterruptedException
+   @SuppressWarnings("unused")
+public static void main(final String[] args) throws InterruptedException
       {
       // Instantiating the Finch object
       Finch myFinch = new Finch();
 
       // Write some code here!
       
-      int[] lightSensors = new int[2];
+      LightData initialData = new LightData(myFinch.getLightSensors());
       boolean[] obstSensors = new boolean[2];
       double temperature;
+      //Vector<LightData> allData = new Vector<LightData>();
       while(true){
-    	  myFinch.setWheelVelocities(200, 200);
-    	  obstSensors = myFinch.getObstacleSensors();
-    	if(false){
-    		break;
-    	}
-    	else if(obstSensors[0]||obstSensors[1]||(myFinch.isTapped() && myFinch.isTapped())){
-    		myFinch.stopWheels();
+    	 for(int i=0;i<10;i++){
+    	   rotate(myFinch, initialData);
+    	 }
+    	   myFinch.quit();
+    	   System.exit(0);
+      }
+    			 //}
+    	//else if(obstSensors[0]||obstSensors[1]||(myFinch.isTapped() && myFinch.isTapped())){
+    	/*	myFinch.stopWheels();
     		myFinch.sleep(100);
-    		myFinch.setWheelVelocities(-255, -255, 900);
+    		myFinch.setWheelVelocities(-255, -255, 500);
     		rotate(myFinch);
     	}
     	
@@ -56,8 +72,7 @@ public class demo2
       // this is a github test
       
       // Always end your program with finch.quit()
-      myFinch.quit();
-      System.exit(0);
+
       }
    }
 

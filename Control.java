@@ -26,28 +26,100 @@ public class Control {
 	 */
 	public void twoLightsInBox(){
 	      LightData initialData = new LightData(myFinch.getLightSensors());
-	      boolean[] obstSensors = new boolean[2];
 	      double temperature;
-	      //Vector<LightData> allData = new Vector<LightData>();
 	      while(true){
-	    	 for(int i=0;i<10;i++){
-	    	   lightRotate(myFinch, initialData);
+	    	  checkForObstacle();
+	    	 if(!lightRotate(myFinch, initialData)){
+	    		 int oneLight = getLight();
+	    		 headToNextLight();
+	    		 int secondLight = getLight();
+	    		 int avg = (oneLight + secondLight) / 2;
+	    		 //goToMiddle(avg);
+	    		 break;
 	    	 }
-	    	   myFinch.quit();
-	    	   System.exit(0);
 	      }
+	      myFinch.quit();
+	      System.exit(0);
 	}
 	
-	public static void lightRotate(Finch myFinch, LightData initialData){
-		for(int i = 0; i<7; i++){
-			myFinch.setWheelVelocities(100,-100, 500);
-			LightData newData = new LightData(myFinch.getLightSensors());
-			if(initialData.getSum()<newData.getSum()){
-				initialData.setData(newData);
-				myFinch.setWheelVelocities(200, 200, 1000);
+	public int getLight() {
+		myFinch.stopWheels();
+		LightData newData = new LightData(myFinch.getLightSensors());
+		return newData.getSum();
+	}
+	
+	public void headToNextLight() {
+		myFinch.stopWheels();
+		myFinch.sleep(100);
+		
+		boolean[] sensorVals = new boolean[2];
+		
+		sensorVals = myFinch.getObstacleSensors();
+		myFinch.setWheelVelocities(-150, -150, 500);
+		
+		if(sensorVals[0]) {
+			myFinch.setWheelVelocities(-100, 0 , 1500);
+		}
+		else {
+			myFinch.setWheelVelocities(0, -100, 1500);
+		}
+		
+		myFinch.setWheelVelocities(200, 200,2500);
+		LightData currentLight = new LightData(getLight());
+
+		while(true){
+			//checkForObstacle();
+			if(!lightRotate(myFinch, currentLight)){
 				break;
 			}
 		}
+	}
+	
+	public boolean lightRotate(Finch myFinch, LightData initialData){
+		for(int i = 0; i<5; i++){
+	    	
+			checkForObstacle();
+	    	if(lightDecision()) {
+	    		myFinch.setWheelVelocities(100,-100, 500); // right rotate
+	    	}
+	    	else {
+	    		myFinch.setWheelVelocities(-100,100, 500); // left rotate
+	    	}
+			
+			LightData newData = new LightData(myFinch.getLightSensors());
+			newData.printData();
+			if(initialData.getSum()<newData.getSum()){
+				initialData.setData(newData);
+				myFinch.setWheelVelocities(200, 200);
+				//myFinch.sleep(500);
+				//checkForObstacle();
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void checkForObstacle(){
+		boolean[] obstSensors = new boolean[2];
+		obstSensors = myFinch.getObstacleSensors();
+		if(obstSensors[0]||obstSensors[1]||(myFinch.isTapped() && myFinch.isTapped())){
+	    		myFinch.stopWheels();
+	    		myFinch.sleep(100);
+	    		myFinch.setWheelVelocities(-255, -255, 500);
+	    	
+		}
+	}
+	
+	
+	public boolean lightDecision() {
+		int[] lightVals = new int[2];
+		lightVals = myFinch.getLightSensors();
+		
+		if(lightVals[0] < lightVals[1]) {
+			return true;
+		}
+		
+		return false;
 	}
 	/*******TWO LIGHTS IN A BOX FUNCTIONS END****************
 	 ***************************************************************

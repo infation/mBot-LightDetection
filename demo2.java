@@ -22,7 +22,15 @@ public static void main(final String[] args) throws InterruptedException
       // Instantiating the Finch object
       Finch myFinch = new Finch();
       Control control = new Control(myFinch);
+      int[] sensors = new int[2];
       control.twoLightsInBox();
+      /*
+      for(int i = 0; i < 10; ++i) {
+    	sensors = myFinch.getLightSensors();
+	  	//temperature = myFinch.getTemperature();
+	  	System.out.println(sensors[0] + "   " + sensors[1] + "   ");
+	  	Thread.sleep(1000);
+      }*/
       // Write some code here!
 
     			 //}
@@ -32,7 +40,6 @@ public static void main(final String[] args) throws InterruptedException
     		myFinch.setWheelVelocities(-255, -255, 500);
     		rotate(myFinch);
     	}
-    	
       }
       
       /*for(int i = 0; i < 100; ++i) {

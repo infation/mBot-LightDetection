@@ -15,6 +15,13 @@ public class LightData {
 		dataSum = data[0]+data[1];
 	}
 	
+	public LightData(int sum) {
+		sensorData = new int[2];
+		sensorData[0] = 0;
+		sensorData[1] = 0;
+		dataSum = sum;
+	}
+	
 	public int getSum(){
 		return dataSum;
 	}

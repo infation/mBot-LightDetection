@@ -26,18 +26,20 @@ public class Control {
 	 */
 	public void twoLightsInBox(){
 	      LightData initialData = new LightData(myFinch.getLightSensors());
-	      double temperature;
-	      while(true){
-	    	  checkForObstacle();
-	    	 if(!lightRotate(myFinch, initialData)){
-	    		 int oneLight = getLight();
-	    		 headToNextLight();
-	    		 int secondLight = getLight();
-	    		 int avg = (oneLight + secondLight) / 2;
-	    		 //goToMiddle(avg);
-	    		 break;
-	    	 }
-	      }
+	      
+	      lightRotate(initialData);
+	      int oneLight = getLight();
+	      // headToNextLight();
+	      myFinch.setLED(0, 255, 0, 2000);
+	      myFinch.setWheelVelocities(-200, -200, 500);
+	      shadowRotate(initialData);
+	      myFinch.setLED(255, 0, 0, 2000);
+	      lightRotate(initialData);
+	      myFinch.setLED(0, 255, 0, 2000);
+	      int secondLight = getLight();
+	      int avg = (oneLight + secondLight) / 2;
+	      //goToMiddle(avg);
+	      shadowRotate(initialData);
 	      myFinch.quit();
 	      System.exit(0);
 	}
@@ -48,70 +50,104 @@ public class Control {
 		return newData.getSum();
 	}
 	
-	public void headToNextLight() {
-		myFinch.stopWheels();
-		myFinch.sleep(100);
-		
-		boolean[] sensorVals = new boolean[2];
-		
-		sensorVals = myFinch.getObstacleSensors();
-		myFinch.setWheelVelocities(-150, -150, 500);
-		
-		if(sensorVals[0]) {
-			myFinch.setWheelVelocities(-100, 0 , 1500);
-		}
-		else {
-			myFinch.setWheelVelocities(0, -100, 1500);
-		}
-		
-		myFinch.setWheelVelocities(200, 200,2500);
-		LightData currentLight = new LightData(getLight());
-
-		while(true){
-			//checkForObstacle();
-			if(!lightRotate(myFinch, currentLight)){
-				break;
+	public void goToMiddle(Finch myFinch, int avg){
+		LightData newData = new LightData(myFinch.getLightSensors());
+		while( (avg < newData.getSum() - 5) && (avg > newData.getSum() + 5) ){
+			if(avg < newData.getSum() - 5){
+				
+			}
+			else if(avg > newData.getSum() + 5){
+				
 			}
 		}
 	}
 	
-	public boolean lightRotate(Finch myFinch, LightData initialData){
-		for(int i = 0; i<5; i++){
-	    	
-			checkForObstacle();
+	public boolean lightRotate(LightData initialData){
+		initialData.printData();
+		for(int i = 0; i<25; i++){
+			//
 	    	if(lightDecision()) {
-	    		myFinch.setWheelVelocities(100,-100, 500); // right rotate
+	    		myFinch.setWheelVelocities(100, -100, 200); // right rotate
 	    	}
 	    	else {
-	    		myFinch.setWheelVelocities(-100,100, 500); // left rotate
+	    		myFinch.setWheelVelocities(-100, 100, 200); // left rotate
 	    	}
-			
-			LightData newData = new LightData(myFinch.getLightSensors());
-			newData.printData();
-			if(initialData.getSum()<newData.getSum()){
-				initialData.setData(newData);
-				myFinch.setWheelVelocities(200, 200);
-				//myFinch.sleep(500);
-				//checkForObstacle();
-				return true;
+
+	    	//myFinch.sleep(200);
+	    	checkForObstacle();
+	    	LightData newData = new LightData(myFinch.getLightSensors());
+	    	newData.printData();
+	    	while(true){
+	    		if(initialData.getSum()<newData.getSum()) {
+	    			newData.printData();
+	    			initialData.setData(newData);
+	    			newData = new LightData(myFinch.getLightSensors());
+	    			myFinch.setWheelVelocities(250, 250, 200);
+	    			checkForObstacle();
+	    			i=0;
+	    		}
+	    		else {
+	    			break;
+	    		}
+	    	}
+		}
+		return false;
+	}
+	
+	public boolean shadowRotate(LightData initialData){
+		initialData.printData();
+		for(int i = 0; i<25; i++){
+			//
+	    	if(!lightDecision()) {
+	    		myFinch.setWheelVelocities(100, -100, 200); // right rotate
+	    	}
+	    	else {
+	    		myFinch.setWheelVelocities(-100, 100, 200); // left rotate
+	    	}
+
+	    	//myFinch.sleep(200);
+	    	checkForObstacle();
+	    	LightData newData = new LightData(myFinch.getLightSensors());
+	    	newData.printData();
+	    	while(true){
+	    		if(initialData.getSum()>newData.getSum()) {
+	    			newData.printData();
+	    			initialData.setData(newData);
+	    			newData = new LightData(myFinch.getLightSensors());
+	    			myFinch.setWheelVelocities(250, 250, 200);
+	    			checkForObstacle();
+	    			i=0;
+	    		}
+	    		else {
+	    			break;
+	    		}
+	    	}
+		}
+		return false;
+	}
+	
+	public boolean checkForObstacle(){
+		boolean[] obstSensors = new boolean[2];
+		obstSensors = myFinch.getObstacleSensors();
+		if(obstSensors[0]||obstSensors[1]) {
+		    	myFinch.stopWheels();
+		    	myFinch.sleep(100);
+		    	myFinch.setWheelVelocities(-255, -255, 200);
+		    	return true;
+		}
+		else{
+			if(myFinch.isTapped() && myFinch.isTapped()){
+				myFinch.stopWheels();
+	    		myFinch.sleep(100);
+	    		myFinch.setWheelVelocities(255, 255, 500);
+	    		return true;
 			}
 		}
 		return false;
 	}
 	
-	public void checkForObstacle(){
-		boolean[] obstSensors = new boolean[2];
-		obstSensors = myFinch.getObstacleSensors();
-		if(obstSensors[0]||obstSensors[1]||(myFinch.isTapped() && myFinch.isTapped())){
-	    		myFinch.stopWheels();
-	    		myFinch.sleep(100);
-	    		myFinch.setWheelVelocities(-255, -255, 500);
-	    	
-		}
-	}
 	
-	
-	public boolean lightDecision() {
+	public boolean lightDecision() { // deciding if light is stronger from left or right
 		int[] lightVals = new int[2];
 		lightVals = myFinch.getLightSensors();
 		
@@ -127,5 +163,96 @@ public class Control {
 	 ***************************************************************
 	 */
 	
+	/*******KENNEL IN A BOX FUNCTIONS STARTS****************
+	 ***************************************************************
+	 ***************************************************************
+	 ***************************************************************
+	 */
+	
+	public void kennelInABox(){
+		Battery battery = new Battery(myFinch);
+		while(battery.getBatteryLevel()>0){
+			if(battery.getBatteryLevel()<25){
+				LightData initialData = new LightData(myFinch.getLightSensors());
+				lightRotate(initialData, battery);
+				battery.charge();
+			}
+			else{
+				LightData initialData = new LightData(myFinch.getLightSensors());
+				shadowRotate(initialData, battery);
+			}
+		}
+		
+	}
+	
+	public boolean lightRotate(LightData initialData, Battery battery){
+		//initialData.printData();
+		for(int i = 0; i<25; i++){
+			battery.discharge();
+	    	if(lightDecision()) {
+	    		myFinch.setWheelVelocities(100, -100, 200); // right rotate
+	    	}
+	    	else {
+	    		myFinch.setWheelVelocities(-100, 100, 200); // left rotate
+	    	}
+
+	    	//myFinch.sleep(200);
+	    	checkForObstacle();
+	    	LightData newData = new LightData(myFinch.getLightSensors());
+	    	//newData.printData();
+	    	while(true){
+	    		if(initialData.getSum()<newData.getSum()) {
+	    			//newData.printData();
+	    			initialData.setData(newData);
+	    			newData = new LightData(myFinch.getLightSensors());
+	    			myFinch.setWheelVelocities(250, 250, 200);
+	    			checkForObstacle();
+	    			i=0;
+	    		}
+	    		else {
+	    			break;
+	    		}
+	    	}
+		}
+		return false;
+	}
+	
+	public boolean shadowRotate(LightData initialData, Battery battery){
+		//initialData.printData();
+		for(int i = 0; i<25; i++){
+			battery.discharge();
+	    	if(!lightDecision()) {
+	    		myFinch.setWheelVelocities(100, -100, 200); // right rotate
+	    	}
+	    	else {
+	    		myFinch.setWheelVelocities(-100, 100, 200); // left rotate
+	    	}
+
+	    	//myFinch.sleep(200);
+	    	checkForObstacle();
+	    	LightData newData = new LightData(myFinch.getLightSensors());
+	    	//newData.printData();
+	    	while(true){
+	    		if(initialData.getSum()>newData.getSum()) {
+	    			//newData.printData();
+	    			initialData.setData(newData);
+	    			newData = new LightData(myFinch.getLightSensors());
+	    			myFinch.setWheelVelocities(250, 250, 200);
+	    			checkForObstacle();
+	    			i=0;
+	    		}
+	    		else {
+	    			break;
+	    		}
+	    	}
+		}
+		return false;
+	}
+	
+	/*******KENNEL IN A BOX FUNCTIONS END****************
+	 ***************************************************************
+	 ***************************************************************
+	 ***************************************************************
+	 */
 	
 }

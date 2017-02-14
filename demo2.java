@@ -23,7 +23,8 @@ public static void main(final String[] args) throws InterruptedException
       Finch myFinch = new Finch();
       Control control = new Control(myFinch);
       int[] sensors = new int[2];
-      control.twoLightsInBox();
+      //control.twoLightsInBox();
+      control.kennelInABox();
       /*
       for(int i = 0; i < 10; ++i) {
     	sensors = myFinch.getLightSensors();

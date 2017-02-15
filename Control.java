@@ -1,6 +1,7 @@
 package Code;
 
 import java.util.Random;
+import java.util.Vector;
 
 import edu.cmu.ri.createlab.terk.robot.finch.Finch;
 
@@ -163,23 +164,31 @@ public class Control {
 	 ***************************************************************
 	 */
 	
-	/*******KENNEL IN A BOX FUNCTIONS STARTS****************
+	/*******KENNEL IN A BOX FUNCTIONS STARTS
+	 * @throws InterruptedException ****************
 	 ***************************************************************
 	 ***************************************************************
 	 ***************************************************************
 	 */
 	
-	public void kennelInABox(){
+	public void kennelInABox() throws InterruptedException{
 		Battery battery = new Battery(myFinch);
+		Thread batteryThread = new Thread(battery);
+		
+		batteryThread.start();
+		//batteryThread.run();
+		
 		while(battery.getBatteryLevel()>0){
-			if(battery.getBatteryLevel()<25){
+			if(battery.getBatteryLevel() <= 20){
 				LightData initialData = new LightData(myFinch.getLightSensors());
 				lightRotate(initialData, battery);
 				battery.charge();
+				batteryThread = new Thread(battery);
+				batteryThread.start();
 			}
 			else{
 				LightData initialData = new LightData(myFinch.getLightSensors());
-				shadowRotate(initialData, battery);
+				shadowRotate(initialData, batteryThread);
 			}
 		}
 		
@@ -189,11 +198,12 @@ public class Control {
 		//initialData.printData();
 		for(int i = 0; i<25; i++){
 			battery.discharge();
-	    	if(lightDecision()) {
-	    		myFinch.setWheelVelocities(100, -100, 200); // right rotate
+			
+			if(lightDecision()) {
+	    		myFinch.setWheelVelocities(100, -100, 300); // right rotate
 	    	}
 	    	else {
-	    		myFinch.setWheelVelocities(-100, 100, 200); // left rotate
+	    		myFinch.setWheelVelocities(-100, 100, 300); // left rotate
 	    	}
 
 	    	//myFinch.sleep(200);
@@ -208,6 +218,7 @@ public class Control {
 	    			myFinch.setWheelVelocities(250, 250, 200);
 	    			checkForObstacle();
 	    			i=0;
+	    			battery.setBatteryLevel(battery.getBatteryLevel()+1);
 	    		}
 	    		else {
 	    			break;
@@ -217,10 +228,14 @@ public class Control {
 		return false;
 	}
 	
-	public boolean shadowRotate(LightData initialData, Battery battery){
+	public boolean shadowRotate(LightData initialData,  Thread batteryThread){
 		//initialData.printData();
 		for(int i = 0; i<25; i++){
-			battery.discharge();
+			//battery.discharge();
+			if(!batteryThread.isAlive()){
+				break;
+			}
+	    	
 	    	if(!lightDecision()) {
 	    		myFinch.setWheelVelocities(100, -100, 200); // right rotate
 	    	}
@@ -233,15 +248,21 @@ public class Control {
 	    	LightData newData = new LightData(myFinch.getLightSensors());
 	    	//newData.printData();
 	    	while(true){
-	    		if(initialData.getSum()>newData.getSum()) {
-	    			//newData.printData();
-	    			initialData.setData(newData);
-	    			newData = new LightData(myFinch.getLightSensors());
-	    			myFinch.setWheelVelocities(250, 250, 200);
-	    			checkForObstacle();
-	    			i=0;
+	    		if(batteryThread.isAlive()){
+		    		if(initialData.getSum()>newData.getSum()) {
+		    			//newData.printData();
+		    			initialData.setData(newData);
+		    			newData = new LightData(myFinch.getLightSensors());
+		    			myFinch.setWheelVelocities(250, 250, 200);
+		    			checkForObstacle();
+		    			i=0;
+		    		}
+		    		else {
+		    			break;
+		    		}
+		    		//battery.discharge();
 	    		}
-	    		else {
+	    		else{
 	    			break;
 	    		}
 	    	}

@@ -75,19 +75,24 @@ public class Control {
 	    	}
 
 	    	//myFinch.sleep(200);
-	    	checkForObstacle();
+	    	if(checkForObstacle())
+    			initialData.setSum(initialData.getSum() - 20);
 	    	LightData newData = new LightData(myFinch.getLightSensors());
 	    	newData.printData();
+	    	int count = 0;
 	    	while(true){
 	    		if(initialData.getSum()<newData.getSum()) {
 	    			newData.printData();
 	    			initialData.setData(newData);
 	    			newData = new LightData(myFinch.getLightSensors());
 	    			myFinch.setWheelVelocities(250, 250, 200);
-	    			checkForObstacle();
-	    			i=0;
-	    		}
+	    			if(checkForObstacle())
+		    		initialData.setSum(initialData.getSum() - 20);
+	    			i-=3;
+	    			count++;
+	    			}
 	    		else {
+	    		
 	    			break;
 	    		}
 	    	}
@@ -107,7 +112,8 @@ public class Control {
 	    	}
 
 	    	//myFinch.sleep(200);
-	    	checkForObstacle();
+	    	if(checkForObstacle())
+	    		initialData.setSum(initialData.getSum() +20);
 	    	LightData newData = new LightData(myFinch.getLightSensors());
 	    	newData.printData();
 	    	while(true){
@@ -116,8 +122,9 @@ public class Control {
 	    			initialData.setData(newData);
 	    			newData = new LightData(myFinch.getLightSensors());
 	    			myFinch.setWheelVelocities(250, 250, 200);
-	    			checkForObstacle();
-	    			i=0;
+	    			if(checkForObstacle())
+	    				initialData.setSum(initialData.getSum() +20);
+	    			i-=3;	    		
 	    		}
 	    		else {
 	    			break;
@@ -133,17 +140,18 @@ public class Control {
 		if(obstSensors[0]||obstSensors[1]) {
 		    	myFinch.stopWheels();
 		    	myFinch.sleep(100);
-		    	myFinch.setWheelVelocities(-255, -255, 200);
+		    	myFinch.setWheelVelocities(-255, -255, 400);
 		    	return true;
 		}
-		else{
+		/*else{
 			if(myFinch.isTapped() && myFinch.isTapped()){
 				myFinch.stopWheels();
 	    		myFinch.sleep(100);
 	    		myFinch.setWheelVelocities(255, 255, 500);
+	    		System.out.println("It was tapped ... ");
 	    		return true;
 			}
-		}
+		}*/
 		return false;
 	}
 	
@@ -179,7 +187,7 @@ public class Control {
 		//batteryThread.run();
 		
 		while(battery.getBatteryLevel()>0){
-			if(battery.getBatteryLevel() <= 20){
+			if(battery.getBatteryLevel() <= 30){
 				LightData initialData = new LightData(myFinch.getLightSensors());
 				lightRotate(initialData, battery);
 				battery.charge();
@@ -194,33 +202,105 @@ public class Control {
 		
 	}
 	
+	public void findLight() {
+		LightData initialLight = new LightData();
+		LightData currentLight = new LightData(myFinch.getLightSensors());
+		boolean left = true;
+		while(initialLight.getSum() <= currentLight.getSum()) {
+			if(lightDecision()) {
+		   		myFinch.setWheelVelocities(70, -70, 100); // right rotate
+		   		
+		   		currentLight = new LightData(myFinch.getLightSensors());
+		   		if (initialLight.getSum() < currentLight.getSum()) {
+		   			initialLight.setSum(currentLight.getSum());
+		   		}
+		   		left = true;
+		   		
+		   	}
+		   	else {
+		   		myFinch.setWheelVelocities(-70, 70, 100); // left rotate
+		   		
+		   		currentLight = new LightData(myFinch.getLightSensors());
+		   		if (initialLight.getSum() < currentLight.getSum()) {
+		   			initialLight.setSum(currentLight.getSum());
+		   		}
+		   		left=false;
+	    	}
+		}
+		
+		if(left){
+			myFinch.setWheelVelocities(-70, 70, 100); 
+		}
+		else{
+			myFinch.setWheelVelocities(70, -70, 100); 
+		}
+	}
+	
+	public void findDark() {
+		LightData initialLight = new LightData(myFinch.getLightSensors());
+		LightData currentLight = new LightData() ;
+		boolean left = true;
+		while(initialLight.getSum() >= currentLight.getSum()) {
+			if(!lightDecision()) {
+		   		myFinch.setWheelVelocities(100, -100, 100); // right rotate
+		   		
+		   		currentLight = new LightData(myFinch.getLightSensors());
+		   		if (initialLight.getSum() > currentLight.getSum()) {
+		   			initialLight.setSum(currentLight.getSum());
+		   		}
+		   		left = true;
+		   		
+		   	}
+		   	else {
+		   		myFinch.setWheelVelocities(-100, 100, 100); // left rotate
+		   		
+		   		currentLight = new LightData(myFinch.getLightSensors());
+		   		if (initialLight.getSum() > currentLight.getSum()) {
+		   			initialLight.setSum(currentLight.getSum());
+		   		}
+		   		left=false;
+	    	}
+		}
+		
+		if(left){
+			myFinch.setWheelVelocities(-100, 100, 100); 
+		}
+		else{
+			myFinch.setWheelVelocities(100, -100, 100); 
+		}
+	}
+	
 	public boolean lightRotate(LightData initialData, Battery battery){
 		//initialData.printData();
-		for(int i = 0; i<25; i++){
+		int speed = 255;
+		for(int i = 0; i<15; i++){
 			battery.discharge();
-			
-			if(lightDecision()) {
-	    		myFinch.setWheelVelocities(100, -100, 300); // right rotate
-	    	}
-	    	else {
-	    		myFinch.setWheelVelocities(-100, 100, 300); // left rotate
-	    	}
+			findLight();
 
 	    	//myFinch.sleep(200);
-	    	checkForObstacle();
+			if(checkForObstacle())
+    			initialData.setSum(initialData.getSum() - 5);
 	    	LightData newData = new LightData(myFinch.getLightSensors());
 	    	//newData.printData();
+	    	int count = 0; 
 	    	while(true){
 	    		if(initialData.getSum()<newData.getSum()) {
 	    			//newData.printData();
 	    			initialData.setData(newData);
 	    			newData = new LightData(myFinch.getLightSensors());
-	    			myFinch.setWheelVelocities(250, 250, 200);
+	    			myFinch.setWheelVelocities(speed, speed, 500);
+	    			if(speed>=90){
+	    				speed-= 10;
+	    			}
 	    			checkForObstacle();
-	    			i=0;
-	    			battery.setBatteryLevel(battery.getBatteryLevel()+1);
+	    			/*if(checkForObstacle())
+		    			initialData.setSum(initialData.getSum() - 5)*/
+	    			i=5;
+	    			count++;
+	    			//battery.setBatteryLevel(battery.getBatteryLevel()+1);
 	    		}
 	    		else {
+	    			
 	    			break;
 	    		}
 	    	}
@@ -236,15 +316,11 @@ public class Control {
 				break;
 			}
 	    	
-	    	if(!lightDecision()) {
-	    		myFinch.setWheelVelocities(100, -100, 200); // right rotate
-	    	}
-	    	else {
-	    		myFinch.setWheelVelocities(-100, 100, 200); // left rotate
-	    	}
+			findDark();
 
 	    	//myFinch.sleep(200);
-	    	checkForObstacle();
+	    	if(checkForObstacle())
+    			initialData.setSum(initialData.getSum() + 5);
 	    	LightData newData = new LightData(myFinch.getLightSensors());
 	    	//newData.printData();
 	    	while(true){
@@ -253,9 +329,10 @@ public class Control {
 		    			//newData.printData();
 		    			initialData.setData(newData);
 		    			newData = new LightData(myFinch.getLightSensors());
-		    			myFinch.setWheelVelocities(250, 250, 200);
-		    			checkForObstacle();
-		    			i=0;
+		    			myFinch.setWheelVelocities(250, 250, 100);
+		    			if(checkForObstacle())
+			    			initialData.setSum(initialData.getSum() + 5);		  
+		    			i=5;
 		    		}
 		    		else {
 		    			break;

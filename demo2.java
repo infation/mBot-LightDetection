@@ -25,6 +25,7 @@ public static void main(final String[] args) throws InterruptedException
       int[] sensors = new int[2];
       //control.twoLightsInBox();
       control.kennelInABox();
+      //control.findLight();
       /*
       for(int i = 0; i < 10; ++i) {
     	sensors = myFinch.getLightSensors();

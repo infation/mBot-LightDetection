@@ -21,9 +21,22 @@ public class Battery implements Runnable {
 	
 	
 	public void charge() {
+		LightData initialData = new LightData(myFinch.getLightSensors());
+		
+		System.out.println("Initial light when charging  " + initialData.getSum());
+		
 		while (this.batteryLevel < 100) {
-			myFinch.setLED(255, 0, 0, 100);
-			//myFinch.sleep(200);
+			
+			LightData currentData = new LightData(myFinch.getLightSensors());
+			
+			if(currentData.getSum() < (initialData.getSum() / 1.5)) {
+				System.out.println("Light stopped at  " + currentData.getSum());
+				return;
+			}
+			
+			
+			myFinch.setLED(255, 0, 0, 200);
+			myFinch.buzz(500, 300);
 			batteryLevel++;
 			System.out.println("Charging" +batteryLevel+"%");
 			
@@ -39,11 +52,11 @@ public class Battery implements Runnable {
 	public void run() {
 		// TODO Auto-generated method stub
 			
-		while(batteryLevel > 20) {
+		while(batteryLevel > 30) {
 			discharge();
 				
 			try {
-				Thread.sleep(100);
+				Thread.sleep(200);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

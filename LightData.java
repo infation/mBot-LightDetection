@@ -42,6 +42,10 @@ public class LightData {
 		return sensorData[1];
 	}
 	
+	public void setSum(int sum){
+		dataSum = sum;
+	}
+	
 	public void setData(LightData data){
 		setLeft(data.getLeft());
 		setRight(data.getRight());

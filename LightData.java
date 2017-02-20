@@ -26,6 +26,24 @@ public class LightData {
 		return dataSum;
 	}
 	
+	public int getOneSensor(boolean sensor){
+		if(sensor){
+			return getRight();
+		}
+		else{
+			return getLeft();
+		}
+	}
+	
+	public void setOneSensor(boolean sensor, int data){
+		if(sensor){
+			setRight(data);
+		}
+		else{
+			setLeft(data);
+		}
+	}
+	
 	public void setLeft(int left){
 		sensorData[0]=left;
 	}

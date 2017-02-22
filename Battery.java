@@ -3,6 +3,8 @@ package Code;
 import edu.cmu.ri.createlab.terk.robot.finch.Finch;
 
 public class Battery implements Runnable {
+	
+	public static int thresholdLevel = 30;
 	private int batteryLevel;
 	private Finch myFinch;
 	

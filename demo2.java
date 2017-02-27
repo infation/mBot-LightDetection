@@ -22,9 +22,12 @@ public static void main(final String[] args) throws InterruptedException
       // Instantiating the Finch object
       Finch myFinch = new Finch();
       Control control = new Control(myFinch);
+      Calibration thresholdVals = new Calibration(myFinch);
       int[] sensors = new int[2];
+      thresholdVals.calibrate();
+      //control.goStraight();
       //control.twoLightsInBox();
-      control.kennelInABox();
+      control.kennelInABox(thresholdVals);
       //control.findDark();
       /*
       for(int i = 0; i < 10; ++i) {

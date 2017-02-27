@@ -7,6 +7,8 @@ import edu.cmu.ri.createlab.terk.robot.finch.Finch;
 
 public class Control {
 	private Finch myFinch;
+	private int loopCount = 0;
+	private boolean lastObstacle = false;
 	
 	public Control(Finch myFinch){
 		this.myFinch = myFinch;
@@ -142,11 +144,14 @@ public class Control {
 		obstSensors = myFinch.getObstacleSensors();
 		
 		//If any of the obstacle sensors detect an object go backwards
-		if(obstSensors[0]||obstSensors[1]) {
+		if(obstSensors[0]||obstSensors[1]||(myFinch.isTapped()&&myFinch.isTapped())) {
 		    	myFinch.stopWheels();
 		    	myFinch.sleep(100);
 		    	myFinch.setWheelVelocities(speed, speed, duration);
-		    	return true;
+		    //while(!(myFinch.isTapped()&&myFinch.isTapped()));
+		    //myFinch.stopWheels();
+		    //myFinch.sleep(500);
+			return true;
 		}
 		/*else{
 			if(myFinch.isTapped() && myFinch.isTapped()){
@@ -185,7 +190,7 @@ public class Control {
 	 ***************************************************************
 	 */
 	
-	public void kennelInABox() throws InterruptedException{
+	public void kennelInABox(Calibration values) throws InterruptedException{
 		
 		//Start a battery thread that discharges the Finch
 		Battery battery = new Battery(myFinch);
@@ -197,14 +202,16 @@ public class Control {
 			//If the battery is below the threshold, look for light
 			if(battery.getBatteryLevel() <= Battery.thresholdLevel){ 
 				
-				lookForLight(battery);
-				battery.charge();
+				lookForLight(battery, values);
+				myFinch.stopWheels();
+				battery.charge(values.getMaxValue());
 				batteryThread = new Thread(battery);
 				batteryThread.start();
-			
+				
 			}
 			else{	//Find shade
-				lookForShade(batteryThread);
+				lookForShade(batteryThread, values, battery);
+				myFinch.stopWheels();
 			}
 			
 		}
@@ -218,7 +225,7 @@ public class Control {
 	public boolean lightDecision(boolean findLight) { // deciding if light is stronger from left or right
 		
 		int speed = 70;
-		int duration = 500;
+		int duration = 300;
 		int[] lightVals = new int[2];
 		lightVals = myFinch.getLightSensors();
 		
@@ -246,6 +253,38 @@ public class Control {
 		}
 	}
 	
+public boolean lightDecisionTest(boolean findLight, int speed) { // deciding if light is stronger from left or right
+		
+		int speedLeft = speed;
+		int speedRight = speed+3;
+		int[] lightVals = myFinch.getLightSensors();
+		
+		//lightVals = myFinch.getLightSensors();
+		
+		//If looking for light
+		if(findLight){
+			if(lightVals[0] < lightVals[1]){
+				myFinch.setWheelVelocities(speedLeft+(lightVals[1]-lightVals[0])+10, speedRight);	//Turn right
+				return true;
+			}
+			else{
+				myFinch.setWheelVelocities(speedLeft, speedRight+(lightVals[0]-lightVals[1])+10); 	//Turn left
+				return false;
+			}
+		}
+		//If looking for shade
+		else{
+			if(lightVals[0] < lightVals[1]){
+				myFinch.setWheelVelocities(speedLeft, speedRight+(lightVals[1]-lightVals[0])+10); 	//Turn left
+				return false;
+			}
+			else{
+				myFinch.setWheelVelocities(speedLeft+(lightVals[0]-lightVals[1])+10, speedRight);	//Turn right
+				return true;
+			}
+		}
+	}
+	
 	/*A function to rotate the finch in place until it finds the
 	* the maximum or minimum light (which depends on the light parameter
 	* true = find more light
@@ -253,7 +292,10 @@ public class Control {
 	*/
 	public void findLightOrShade(boolean light) {
 
-		boolean whichSensor;
+		int speed = 70;
+		int duration = 300;
+		
+		boolean whichSensor, lastSensor = false;
 		
 		//Get initial light
 		LightData initialLight = new LightData(myFinch.getLightSensors());
@@ -269,7 +311,7 @@ public class Control {
 		
 			while(initialLight.getOneSensor(whichSensor) < currentLight.getOneSensor(whichSensor)) {	
 				initialLight.setData(currentLight);
-			   	lightDecision(light);
+			   	lastSensor = lightDecision(light);
 			   	currentLight = new LightData(myFinch.getLightSensors());
 			}
 		
@@ -277,23 +319,34 @@ public class Control {
 		else{	//Find the MIN light around the finch
 			while(initialLight.getOneSensor(whichSensor) > currentLight.getOneSensor(whichSensor)) {
 				initialLight.setData(currentLight);
-				lightDecision(light);
+				lastSensor = lightDecision(light);
 				currentLight = new LightData(myFinch.getLightSensors());
 			}
 		
 		}
 		
 		//Rotate back to where the light is at it's maximum or minimum
-		lightDecision(light);
+		if(lastSensor){
+			myFinch.setWheelVelocities(-speed, speed, duration);	//Turn left
+		}
+		else{
+			myFinch.setWheelVelocities(speed, -speed, duration);	//Turn right
+		}
 	}
-
+	
 	//Function to go straight
 	public void goStraight(){
-		
-		int speed = 140;
-		int duration = 500;
-		myFinch.setWheelVelocities(speed, speed, duration);
-	
+		int speed = 200;
+		int duration = 300;
+		/*Long timeA = System.currentTimeMillis();
+		while(true){
+			myFinch.setWheelVelocities(speed, speed+3);
+			if(checkForObstacle()){ 
+				break;
+			}
+		}
+		return (int) (System.currentTimeMillis()-timeA-500);*/
+		myFinch.setWheelVelocities(speed, speed+3, duration);
 	}
 	
 	//Set the initial light, go straight and get the current light readings
@@ -306,110 +359,224 @@ public class Control {
 			
 	}
 	
-	//A function to look for and ge to the light source
-	public void lookForLight(Battery battery){
+	public void rotate90(){
+		LightData currentData = new LightData(myFinch.getLightSensors());
+		if(lastObstacle) {
+			myFinch.setWheelVelocities(70, -70, 1600); // goes right
+		}
+		else {
+			myFinch.setWheelVelocities(-70, 70, 1600); // goes left
+		}
+	}
+	
+	public int batteryToSpeed(Battery battery){
+		int speed = 210;
+		return speed-battery.getBatteryLevel();
+	}
+	
+	public void backLeft() {
+		myFinch.setWheelVelocities(-60, -170, 1000);
+		myFinch.stopWheels();
+		myFinch.sleep(100);
+	}
+	
+	public void backRight() {
+		myFinch.setWheelVelocities(-170, -60, 1000);
+		myFinch.stopWheels();
+		myFinch.sleep(100);
+	}
+	
+	public void avoidObstacle(boolean light) {
+		boolean[] sensors = myFinch.getObstacleSensors();
+		LightData data = new LightData(myFinch.getLightSensors());
 		
-		int timesToCheck = 10;
-		LightData initialData = new LightData(myFinch.getLightSensors());
+		if(loopCount>4){
+			rotate90();
+			loopCount = 0;
+			return;
+		}
 		
-		for(int i = 0; i < timesToCheck; i++){
-		
-			battery.discharge();
+		if (sensors[0]) {
 			
-			findLightOrShade(true);
-			
-			//Check for obstacle and manually decrease the maximum data
-			if(checkForObstacle()) {
-				//avoidObstacle();
-				//LightData newData = new LightData(myFinch.getLightSensors()); 
-    			//initialData.setSum(initialData.getSum() - 5);
+			if(lastObstacle){
+				loopCount++;
 			}
+			lastObstacle = false;
 			
-			LightData newData = new LightData(myFinch.getLightSensors()); 
-	    	
-			//Go straight ahead until reaching the maximum light for the run
-			while(initialData.getSum()<newData.getSum()){
-	    			
-	    			//Set the maximum light data move straight and get the next light data
-	    			//setInitGetCurrent(initialData, newData);
-	    			
-				initialData.setData(newData);
-				goStraight();
-				checkForObstacle();
-				newData = new LightData(myFinch.getLightSensors());
+			myFinch.stopWheels();
+			myFinch.sleep(100);
+			
+			if(light){
 				
-	    			//If obstacle after going straight, reset the light readings
-	    			/*if(checkForObstacle() && (initialData.getSum() > newData.getSum())){
-		    			//initialData.setSum(initialData.getSum() - 25);
-		    			//break;
-	    				return;
-	    			}*/
-	    			
-	    			//Reset the for loop
-		    		i=5;
-	    	}
+				if(data.getLeft()>data.getRight() + 15) {
+					backRight();
+					return;
+				}
+			}
+			else{
+				if(data.getLeft() < data.getRight() - 15) {
+					backRight();
+					return;
+				}
+			}
+			backLeft();
+			
+		}
+		else if (sensors[1]) {
+			
+			if(!lastObstacle){
+				loopCount++;
+			}
+			lastObstacle = true;
+			
+			myFinch.stopWheels();
+			myFinch.sleep(100);
+			
+			if(light){
+				if(data.getLeft() + 15 < data.getRight()) {
+					backLeft();
+					return;
+				}
+			}
+			else{
+				if(data.getLeft() - 15 > data.getRight()) {
+					backLeft();
+					return;
+				}
+			}
+			backRight();
+		}
+	}
+	
+	/*public void map(){
+		int width = goStraight();
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		int length = goStraight();
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		myFinch.setWheelVelocities(150, 150, width);
+		rotate90();
+		myFinch.setWheelVelocities(150, 150, length);
+		rotate90();
+		myFinch.setWheelVelocities(150, 150, width);
+		rotate90();
+		myFinch.setWheelVelocities(150, 150, length);
+		rotate90();
+		
+	}
+	*/
+	
+	//A function to look for and ge to the light source
+	public void lookForLight(Battery battery, Calibration values){
+		
+		boolean lastObstacle = false;
+		//int timesToCheck = 10;
+		LightData currentData = new LightData(myFinch.getLightSensors());
+		LightData maxData = new LightData(myFinch.getLightSensors());
+		//DischargeWhileLookingForLight discharge = new DischargeWhileLookingForLight(battery, this.myFinch);
+		//discharge.run();
+		int count = 0;
+		while(values.getMaxValue()>currentData.getSum()+10){
+		
+			//if(currentData.getSum()<)
+			//battery.discharge();
+			
+			avoidObstacle(true);
+			lightDecisionTest(true, batteryToSpeed(battery));
+			
+			/*if(!avoidObstacle()){
+				//findLightOrShade(true);
+				lightDecisionTest(true);
+			}
+			else{
+				//rotate90();
+				avoidObstacle();
+				//findLightOrShade(false);
+				count --;
+			}*/
+			
+			/*if(checkForObstacle()){
+				//randomRotate(myFinch);
+				count++;
+			}*/
+			//goStraight();
+			/*if(checkForObstacle()){
+				//randomRotate(myFinch);
+				count++;
+			}*/
+			currentData = new LightData(myFinch.getLightSensors());
+	
 		}
 	}
 
 	//A function to run away from the light and find the darkest place
-	public void lookForShade(Thread batteryThread){
+	public void lookForShade(Thread batteryThread, Calibration values, Battery battery){
 	
-		int timesToCheck = 15;
-		LightData initialData = new LightData(myFinch.getLightSensors());
+		//int timesToCheck = 10;
+		LightData currentData = new LightData(myFinch.getLightSensors());
 		
-		for(int i = 0; i < timesToCheck; i++){
-			
+		//DischargeWhileLookingForLight discharge = new DischargeWhileLookingForLight(battery, this.myFinch);
+		//discharge.run();
+		int count = 0;
+		
+		while(values.getMinValue()<currentData.getSum()-10){
 			//If the battery is depleted stop shadow rotate
+			
+			
 			if(!batteryThread.isAlive()){
 				return;
 			}
 			
-			//Rotate where there is most shade
-			findLightOrShade(false);
+			avoidObstacle(false);
+			lightDecisionTest(false,batteryToSpeed(battery));
+			/*if(!checkForObstacle()){
+				lightDecisionTest(false);
+			}
+			else{
+				//rotate90();
+				avoidObstacle();
+				count--;
+			}*/
+		
+			/*if(checkForObstacle()){
+				//randomRotate(myFinch);
+				count++;
+			}
+			//goStraight();
+			/*if(checkForObstacle()){
+				count++;
+				//randomRotate(myFinch);
+			}*/
 			
-			//Check for obstacle and manually increase the minimum data
-	    	if(checkForObstacle())
-    			initialData.setSum(initialData.getSum() + 5);
-	    	
-	    	LightData newData = new LightData(myFinch.getLightSensors());
-	    	
-			//Go straight ahead until reaching the minimum light for the run
-	    	while(true){
-	    		//If the battery is not depleted
-	    		if(batteryThread.isAlive()){
-	    			if(initialData.getSum()>newData.getSum()) {
-		    		
-	    				initialData.printData();
-	    				//Set the minimum light data move straight and get the next light data
-	    				setInitGetCurrent(initialData, newData);
-	    				
-	    				newData.printData();
-		    			//Check for obstacle and reset the minimum light data
-		    			if(checkForObstacle()){
-			    			initialData.setSum(initialData.getSum() + 5);		  
-			    			break;
-		    			}
-		    			
-		    			//Reset the "for" loop
-		    			i=5;
-		    			
-		    		}
-		    		else {
-		    			//Check for obstacle and reset the light data
-		    			/*if(checkForObstacle())
-		    				initialData.setSum(initialData.getSum() + 50);	*/
-		    			break;
-		    		}
-	    			
-	    		}
-	    		//If the battery is depleted stop immediately
-	    		else{
-	    			return;
-	    		}
-	    	}
+			currentData = new LightData(myFinch.getLightSensors());
 		}
 	}
 	
+	public void printLight(){
+		//myFinch.showLightSensorGraph();
+		myFinch.showAccelerometerGraph();
+		while(true){
+			LightData initialData = new LightData(myFinch.getLightSensors());
+			myFinch.updateAccelerometerGraph(myFinch.getXAcceleration(),0.1, 0.5);
+			//myFinch.updateLightSensorGraph(myFinch.getLeftLightSensor(), myFinch.getRightLightSensor());
+			initialData.printData();
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 	/*******KENNEL IN A BOX FUNCTIONS END****************
 	 ***************************************************************
 	 ***************************************************************

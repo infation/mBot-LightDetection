@@ -1,7 +1,5 @@
 package Code;
 
-import java.io.Console;
-import java.io.IOException;
 import java.util.Scanner;
 
 import edu.cmu.ri.createlab.terk.robot.finch.Finch;
@@ -59,12 +57,7 @@ public class Calibration {
 		s.nextLine();
 		calibrateMax(numCalibrations);
 		
-		/*System.out.println("Place the finch in the middle of field");
-		System.out.print("Press enter to begin! ");
-		s.nextLine();
-		calibrateAverage(numCalibrations);*/
-		
-		s.close();
+		System.out.println("Calibration done successfully!");
 		
 	}
 	

@@ -33,10 +33,10 @@ public class Battery implements Runnable {
 			}
 			
 			
-			myFinch.setLED(255, 0, 0, 500);
-			myFinch.buzz(500, 300);
-			myFinch.sleep(300);
-			batteryLevel+=5;
+			myFinch.setLED(255, 0, 0, 400);
+			myFinch.buzz(500, 250);
+			myFinch.sleep(200);
+			batteryLevel+=4;
 			System.out.println("Charging" +batteryLevel+"%");
 			
 		}
@@ -54,7 +54,7 @@ public class Battery implements Runnable {
 			discharge();
 				
 			try {
-				Thread.sleep(200);
+				Thread.sleep(300);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

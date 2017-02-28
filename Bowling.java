@@ -2,7 +2,6 @@ package Code;
 // Needs a package declaration to move to another folder
 
 import java.util.Scanner;
-import java.util.HashMap;
 import edu.cmu.ri.createlab.terk.robot.finch.Finch;
 
 /**
@@ -95,7 +94,6 @@ public class Bowling {
 	*/
 	public static void noBumpersSecondTry(Finch myFinch, int time){
 		
-		boolean isLeft = true;
 		int speed=35;
 		Long timeA = System.currentTimeMillis();
 
@@ -195,7 +193,6 @@ public class Bowling {
 	 * */
 	public static Boolean decisionBumper(Finch myFinch) {
 		boolean[] sensors = myFinch.getObstacleSensors();
-		Boolean answer = null;
 		
 		if( sensors[0] || sensors[1]) {		
 			myFinch.stopWheels();

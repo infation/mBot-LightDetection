@@ -16,11 +16,12 @@ public class Kennel extends Control {
 	public void kennelInABox() throws InterruptedException {
 		
 		Calibration values = new Calibration(myFinch);
-		values.calibrate();
+		values.calibrateMin();
+		values.calibrateMax();
+		
 		//Start a battery thread that discharges the Finch
 		Battery battery = new Battery(myFinch);
-		Thread batteryThread = new Thread(battery);
-		
+		Thread batteryThread = new Thread(battery);	
 		batteryThread.start();
 		
 		//Find light/shade Until the battery is fully depleted

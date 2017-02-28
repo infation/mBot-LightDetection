@@ -45,7 +45,7 @@ public class Control {
     			initialData.setSum(initialData.getSum() - 20);
 	    	LightData newData = new LightData(myFinch.getLightSensors());
 	    	newData.printData();
-	    	int count = 0;
+
 	    	while(true){
 	    		if(initialData.getSum()<newData.getSum()) {
 	    			newData.printData();
@@ -55,7 +55,6 @@ public class Control {
 	    			if(checkForObstacle())
 		    		initialData.setSum(initialData.getSum() - 20);
 	    			i-=3;
-	    			count++;
 	    			}
 	    		else {
 	    		
@@ -474,7 +473,7 @@ public class Control {
 	public void lookForLight(Battery battery, Calibration values){
 		
 		LightData currentData = new LightData(myFinch.getLightSensors());
-		DischargeWhileLookingForLight lowBattery = new DischargeWhileLookingForLight(battery, this.myFinch);
+		DischargeWhileLookingForLight lowBattery = new DischargeWhileLookingForLight(battery);
 		Thread lowBatteryThread = new Thread(lowBattery);
 		
 		lowBatteryThread.start();

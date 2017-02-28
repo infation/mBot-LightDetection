@@ -10,11 +10,13 @@ public class Calibration {
 	private int minValue;
 	private int averageValue;
 	private Finch myFinch;
+	private int numCalibrations;
 	
 	public Calibration(Finch myFinch){
 		maxValue = 0;
 		minValue = 0;
 		averageValue = 0;
+		numCalibrations = 150;
 		this.myFinch = myFinch;
 	}
 	
@@ -42,26 +44,13 @@ public class Calibration {
 		this.averageValue = averageValue;
 	}
 	
-	public void calibrate() {
-		int numCalibrations = 150;
+	public void calibrateMin() {
+		
 		Scanner s = new Scanner(System.in);
-		
-		System.out.println("Place finch in darkest place");
+		System.out.println("MIN Threshold : ");
 		System.out.print("Press enter to begin! ");
 		s.nextLine();
-		calibrateMin(numCalibrations);
-	
 		
-		System.out.println("Place the finch in lightest place");
-		System.out.print("Press enter to begin! ");
-		s.nextLine();
-		calibrateMax(numCalibrations);
-		
-		System.out.println("Calibration done successfully!");
-		
-	}
-	
-	public void calibrateMin(int numCalibrations) {
 		LightData data = new LightData(myFinch.getLightSensors());
         
 		for(int i = 0; i < numCalibrations; i++) {
@@ -81,9 +70,18 @@ public class Calibration {
 		
 		System.out.println("Calibration done!");
 		System.out.println("Min Value " + this.minValue);
+		System.out.print("Press enter for next step! ");
+		s.nextLine();
+		
 	}
 	
-	public void calibrateMax(int numCalibrations) {
+	public void calibrateMax() {
+		
+		Scanner s = new Scanner(System.in);
+		System.out.println("MAX Threshold : ");
+		System.out.print("Press enter to begin! ");
+		s.nextLine();
+		
 		LightData data = new LightData(myFinch.getLightSensors());
         
 		data = new LightData(myFinch.getLightSensors());
@@ -106,10 +104,18 @@ public class Calibration {
 		
 		System.out.println("Calibration done!");
 		System.out.println("Max Value " + this.maxValue);
+		System.out.print("Press enter for next step! ");
+		s.nextLine();
 		
 	}
 
-	public void calibrateAverage(int numCalibrations) {
+	public void calibrateAverage() {
+		
+		Scanner s = new Scanner(System.in);
+		System.out.println("AVERAGE Threshold : ");
+		System.out.print("Press enter to begin! ");
+		s.nextLine();
+		
 		LightData data = new LightData(myFinch.getLightSensors());
 		
 		data = new LightData(myFinch.getLightSensors());
@@ -131,5 +137,7 @@ public class Calibration {
 		
 		System.out.println("Calibration done!");
 		System.out.println("Average Value " + this.averageValue);
+		System.out.print("Press enter for next step! ");
+		s.nextLine();
 	}
 }

@@ -261,14 +261,12 @@ public class Bowling {
 	 * */
 	public static void zigZag(Finch myFinch, int time) {
 		int speed = 35;
-		int counter = 0;
 		long timeB = System.currentTimeMillis();
 		while(System.currentTimeMillis()-timeB<time*1000) {
 			Boolean answer = decisionBumper(myFinch);
 			
 			if(answer!=null){
 				if (answer) {
-					counter++;
 					myFinch.stopWheels();
 					myFinch.sleep(100);
 					speed = 35;

@@ -1,16 +1,12 @@
 package Code;
 
-import edu.cmu.ri.createlab.terk.robot.finch.Finch;
-
 public class DischargeWhileLookingForLight implements Runnable {
 	
 	private Battery battery;
-	private Finch myFinch;
 	private volatile boolean exit = false;
 	
-	public DischargeWhileLookingForLight(Battery battery, Finch myFinch) {
+	public DischargeWhileLookingForLight(Battery battery) {
 		this.battery = battery;
-		this.myFinch = myFinch;
 	}
 	
 	public void run() {

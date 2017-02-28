@@ -52,7 +52,8 @@ public class demo2
 		    	  lowObstacle.lowObstacle();
 		    	  break; 	  
 		      case 4:
-		    	  //Cockroach
+		    	  Cockroach cockroach = new Cockroach(myFinch);
+		    	  cockroach.cockroach();
 		    	  break;
 		      }
 	      }

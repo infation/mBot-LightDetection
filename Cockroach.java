@@ -12,8 +12,8 @@ public class Cockroach extends Control{
 	
 	public void cockroach(){
 		
-		LightData currentData = new LightData(myFinch.getLightSensors());
-		currentData.printData();
+		
+		//currentData.printData();
 		
 		Calibration values = new Calibration(myFinch);
 		values.calibrateMin();
@@ -24,6 +24,7 @@ public class Cockroach extends Control{
 		int lightOn = values.getMaxValue();
 		
 		while(true){
+			LightData currentData = new LightData(myFinch.getLightSensors());
 			//LightData currentData = new LightData(myFinch.getLightSensors());
 			
 			//If the light has been turned off roam slowly around the room
@@ -86,8 +87,12 @@ public class Cockroach extends Control{
 				findLightOrShade(false);
 				return;
 			}
-			avoidObstacle(false);
-			lightDecisionTest(false, 170);
+			else{
+				avoidObstacle(false);
+				lightDecisionTest(false, 170);
+
+			}
+			
 			currentData = new LightData(myFinch.getLightSensors());
 			myFinch.setLED(255, 0, 0);
 		}

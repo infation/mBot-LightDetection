@@ -6,6 +6,7 @@ import java.util.Vector;
 import edu.cmu.ri.createlab.terk.robot.finch.Finch;
 
 public class Control {
+	
 	private Finch myFinch;
 	private int loopCount = 0;
 	private boolean lastObstacle = false;
@@ -15,7 +16,7 @@ public class Control {
 	}
 	
 	//Rotate finch for 1.5 sec 
-	public static void randomRotate(Finch myFinch) {
+	public void randomRotate() {
 		Random rand = new Random();
 		int randSpeed = (rand.nextInt() % 210) + 40;
 		myFinch.setWheelVelocities(randSpeed, -randSpeed, 1500);
@@ -27,26 +28,8 @@ public class Control {
 	 ***************************************************************
 	 ***************************************************************
 	 */
-	public void twoLightsInBox(){
-	      LightData initialData = new LightData(myFinch.getLightSensors());
-	      
-	      lightRotate(initialData);
-	      int oneLight = getLight();
-	      // headToNextLight();
-	      myFinch.setLED(0, 255, 0, 2000);
-	      myFinch.setWheelVelocities(-200, -200, 500);
-	      shadowRotate(initialData);
-	      myFinch.setLED(255, 0, 0, 2000);
-	      lightRotate(initialData);
-	      myFinch.setLED(0, 255, 0, 2000);
-	      int secondLight = getLight();
-	      int avg = (oneLight + secondLight) / 2;
-	      //goToMiddle(avg);
-	      shadowRotate(initialData);
-	      myFinch.quit();
-	      System.exit(0);
-	}
 	
+	/*
 	public int getLight() {
 		myFinch.stopWheels();
 		LightData newData = new LightData(myFinch.getLightSensors());
@@ -161,7 +144,7 @@ public class Control {
 	    		System.out.println("It was tapped ... ");
 	    		return true;
 			}
-		}*/
+		}
 		return false;
 	}
 	
@@ -175,7 +158,7 @@ public class Control {
 		}
 		
 		return false;
-	}
+	}*/
 	
 	/*******TWO LIGHTS IN A BOX FUNCTIONS END****************
 	 ***************************************************************
@@ -189,40 +172,14 @@ public class Control {
 	 ***************************************************************
 	 ***************************************************************
 	 */
-	
-	public void kennelInABox(Calibration values) throws InterruptedException{
-		
-		//Start a battery thread that discharges the Finch
-		Battery battery = new Battery(myFinch);
-		Thread batteryThread = new Thread(battery);
-		batteryThread.start();
-		
-		//Find light/shade Until the battery is fully depleted
-		while(battery.getBatteryLevel()>0){	
-			//If the battery is below the threshold, look for light
-			if(battery.getBatteryLevel() <= Battery.thresholdLevel){ 
-				
-				lookForLight(battery, values);
-				myFinch.stopWheels();
-				battery.charge(values.getMaxValue());
-				batteryThread = new Thread(battery);
-				batteryThread.start();
-				
-			}
-			else{	//Find shade
-				lookForShade(batteryThread, values, battery);
-				myFinch.stopWheels();
-			}
-			
-		}
-	}
+
 	
 	/* A function that rotates the Finch once.
 	 * The passed parameter findLight decides where to rotate the Finch:
 	 * true = it rotates the Finch left or right depending on which sensor had read MORE light
 	 * false = it rotates the Finch left or right depending on which sensor had read LESS light
 	 */
-	public boolean lightDecision(boolean findLight) { // deciding if light is stronger from left or right
+	/*public boolean lightDecision(boolean findLight) { // deciding if light is stronger from left or right
 		
 		int speed = 70;
 		int duration = 300;
@@ -251,13 +208,14 @@ public class Control {
 			myFinch.setWheelVelocities(speed, -speed, duration);	//Turn right
 			return true;
 		}
-	}
+	}*/
 	
-public boolean lightDecisionTest(boolean findLight, int speed) { // deciding if light is stronger from left or right
+	public boolean lightDecisionTest(boolean findLight, int speed) { // deciding if light is stronger from left or right
 		
 		int speedLeft = speed;
 		int speedRight = speed+3;
 		int[] lightVals = myFinch.getLightSensors();
+		System.out.println(lightVals[0]+" "+lightVals[1]);
 		
 		//lightVals = myFinch.getLightSensors();
 		
@@ -290,7 +248,7 @@ public boolean lightDecisionTest(boolean findLight, int speed) { // deciding if 
 	* true = find more light
 	* false = find more shade
 	*/
-	public void findLightOrShade(boolean light) {
+	/*public void findLightOrShade(boolean light) {
 
 		int speed = 70;
 		int duration = 300;
@@ -345,7 +303,7 @@ public boolean lightDecisionTest(boolean findLight, int speed) { // deciding if 
 				break;
 			}
 		}
-		return (int) (System.currentTimeMillis()-timeA-500);*/
+		return (int) (System.currentTimeMillis()-timeA-500);
 		myFinch.setWheelVelocities(speed, speed+3, duration);
 	}
 	
@@ -357,7 +315,7 @@ public boolean lightDecisionTest(boolean findLight, int speed) { // deciding if 
 			checkForObstacle();
 			current = new LightData(myFinch.getLightSensors());
 			
-	}
+	}*/
 	
 	public void rotate90(){
 		LightData currentData = new LightData(myFinch.getLightSensors());
@@ -391,7 +349,7 @@ public boolean lightDecisionTest(boolean findLight, int speed) { // deciding if 
 		LightData data = new LightData(myFinch.getLightSensors());
 		
 		if(loopCount>4){
-			rotate90();
+			randomRotate();
 			loopCount = 0;
 			return;
 		}
@@ -448,71 +406,16 @@ public boolean lightDecisionTest(boolean findLight, int speed) { // deciding if 
 		}
 	}
 	
-	/*public void map(){
-		int width = goStraight();
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		int length = goStraight();
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		myFinch.setWheelVelocities(150, 150, width);
-		rotate90();
-		myFinch.setWheelVelocities(150, 150, length);
-		rotate90();
-		myFinch.setWheelVelocities(150, 150, width);
-		rotate90();
-		myFinch.setWheelVelocities(150, 150, length);
-		rotate90();
-		
-	}
-	*/
-	
 	//A function to look for and ge to the light source
 	public void lookForLight(Battery battery, Calibration values){
-		
-		boolean lastObstacle = false;
-		//int timesToCheck = 10;
+
 		LightData currentData = new LightData(myFinch.getLightSensors());
-		LightData maxData = new LightData(myFinch.getLightSensors());
 		//DischargeWhileLookingForLight discharge = new DischargeWhileLookingForLight(battery, this.myFinch);
 		//discharge.run();
 		int count = 0;
 		while(values.getMaxValue()>currentData.getSum()+10){
-		
-			//if(currentData.getSum()<)
-			//battery.discharge();
-			
 			avoidObstacle(true);
 			lightDecisionTest(true, batteryToSpeed(battery));
-			
-			/*if(!avoidObstacle()){
-				//findLightOrShade(true);
-				lightDecisionTest(true);
-			}
-			else{
-				//rotate90();
-				avoidObstacle();
-				//findLightOrShade(false);
-				count --;
-			}*/
-			
-			/*if(checkForObstacle()){
-				//randomRotate(myFinch);
-				count++;
-			}*/
-			//goStraight();
-			/*if(checkForObstacle()){
-				//randomRotate(myFinch);
-				count++;
-			}*/
 			currentData = new LightData(myFinch.getLightSensors());
 	
 		}
@@ -521,42 +424,18 @@ public boolean lightDecisionTest(boolean findLight, int speed) { // deciding if 
 	//A function to run away from the light and find the darkest place
 	public void lookForShade(Thread batteryThread, Calibration values, Battery battery){
 	
-		//int timesToCheck = 10;
 		LightData currentData = new LightData(myFinch.getLightSensors());
 		
 		//DischargeWhileLookingForLight discharge = new DischargeWhileLookingForLight(battery, this.myFinch);
 		//discharge.run();
-		int count = 0;
 		
 		while(values.getMinValue()<currentData.getSum()-10){
-			//If the battery is depleted stop shadow rotate
-			
-			
 			if(!batteryThread.isAlive()){
 				return;
 			}
 			
 			avoidObstacle(false);
 			lightDecisionTest(false,batteryToSpeed(battery));
-			/*if(!checkForObstacle()){
-				lightDecisionTest(false);
-			}
-			else{
-				//rotate90();
-				avoidObstacle();
-				count--;
-			}*/
-		
-			/*if(checkForObstacle()){
-				//randomRotate(myFinch);
-				count++;
-			}
-			//goStraight();
-			/*if(checkForObstacle()){
-				count++;
-				//randomRotate(myFinch);
-			}*/
-			
 			currentData = new LightData(myFinch.getLightSensors());
 		}
 	}

@@ -140,4 +140,42 @@ public class Calibration {
 		System.out.print("Press enter for next step! ");
 		s.nextLine();
 	}
+	
+	
+	public int calibrateLight() {
+		
+		Scanner s = new Scanner(System.in);
+		System.out.println("MAX Threshold : ");
+		System.out.print("Press enter to begin! ");
+		s.nextLine();
+		
+		LightData data = new LightData(myFinch.getLightSensors());
+        
+		data = new LightData(myFinch.getLightSensors());
+		
+		int max = 0;
+		
+		for(int i = 0; i < numCalibrations; i++) {
+			max += data.getSum();
+			
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			data = new LightData(myFinch.getLightSensors());
+		}
+		
+		
+		System.out.println("Calibration done!");
+		System.out.println("Max Value " + this.maxValue);
+		System.out.print("Press enter for next step! ");
+		s.nextLine();
+		
+		return max / numCalibrations;
+	}
+	
+	
 }

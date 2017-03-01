@@ -28,7 +28,7 @@ public class Cockroach extends Control{
 			//LightData currentData = new LightData(myFinch.getLightSensors());
 			
 			//If the light has been turned off roam slowly around the room
-			if(lightOn > currentData.getSum() + 30 || lightOff < currentData.getSum()-20){
+			if(lightOff < currentData.getSum()+20){
 				lookForLight(lightOn);
 			}
 			
@@ -38,7 +38,7 @@ public class Cockroach extends Control{
 			if(shade < currentData.getSum() - 10 || shade > currentData.getSum()-10 ){
 				lookForShade(shade, lightOff);
 				myFinch.stopWheels();
-				myFinch.sleep(1000);
+				//myFinch.sleep(200);
 				//myFinch.setLED(0, 255, 0);
 			}
 			
@@ -46,9 +46,9 @@ public class Cockroach extends Control{
 			
 			//If the shade has been found stay there until the external light has been turned off or there is
 			//change in the environment and the shade is not the safe spot anymore
-			while(shade > currentData.getSum()-30||lightOff > currentData.getSum()-20){
+			while(shade > currentData.getSum()-30 && lightOff < currentData.getSum()-20){
 				currentData = new LightData(myFinch.getLightSensors());
-				myFinch.setLED(0, 255, 0);
+				myFinch.setLED(0, 0, 255);
 			}
 			
 	
@@ -63,7 +63,7 @@ public class Cockroach extends Control{
 
 		LightData currentData = new LightData(myFinch.getLightSensors());
 
-		while(value>currentData.getSum()+30){
+		while(value>currentData.getSum()+100){
 			avoidObstacle(true);
 			lightDecisionTest(true, 70);
 			currentData = new LightData(myFinch.getLightSensors());
@@ -74,16 +74,17 @@ public class Cockroach extends Control{
 
 	//A function to run away from the light and find the darkest place
 	public void lookForShade(int shade, int lightOff){
-	
+		boolean switchLook = false;
 		LightData currentData = new LightData(myFinch.getLightSensors());
-		
-		while((shade < currentData.getSum() - 30) || (lightOff < currentData.getSum()-20)){
+		Long timeBefore = System.currentTimeMillis();
+		Long timeAfter = System.currentTimeMillis();
+		while(lightOff < currentData.getSum()-20){
 			
 			/*if(currentData.getSum() < maxValue - 20 ) {
 				return;
 			}*/
 			if(((currentData.getLeft()>currentData.getRight()+30)&&(currentData.getRight()*2-30<shade))
-				||((currentData.getLeft()+30<currentData.getRight())&&(currentData.getLeft()*2-30<shade))){
+				||((currentData.getLeft()+30<currentData.getRight())&&(currentData.getLeft()*2-30<shade))&&lightOff < currentData.getSum()-20){
 				myFinch.stopWheels();
 				myFinch.sleep(1000);
 				//findLightOrShade(false);
@@ -91,27 +92,35 @@ public class Cockroach extends Control{
 					lightDecision(false);
 				}
 				myFinch.setWheelVelocities(200, 200, 300);
-				myFinch.setLED(0,0,255,3000);
+				//myFinch.setLED(0, 0, 255, 3000);
 				return;
 			}
 			
 			currentData = new LightData(myFinch.getLightSensors());
 			
-			if(shade > currentData.getSum() - 30 || lightOff > currentData.getSum()-20){
+			if(shade > currentData.getSum() - 30 && lightOff < currentData.getSum()-20){
 				myFinch.stopWheels();
-				myFinch.sleep(1000);
+				myFinch.sleep(100);
 				//findLightOrShade(false);
 				for(int i = 0; i < 3 ; i++){
 					lightDecision(false);
 				}
 				myFinch.setWheelVelocities(200, 200, 300);
-				myFinch.setLED(0,0,255,3000);
+				//myFinch.setLED(0,0,255,3000);
 				return;
 			}
 			
-			avoidObstacle(false);
-			lightDecisionTest(false, 170);			
+			//Switch gears every 15 seconds
+			timeAfter = System.currentTimeMillis();
+			if(timeAfter - timeBefore > 15000){
+				switchLook = !switchLook;
+				timeBefore = System.currentTimeMillis();
+				timeAfter = System.currentTimeMillis();
+			}
+			avoidObstacle(switchLook);
+			lightDecisionTest(switchLook, 170);			
 			myFinch.setLED(255, 0, 0);
+			
 		}
 	}
 }

@@ -18,7 +18,7 @@ public class TwoLights extends Control {
 		  values.calibrateMax();
 		  values.calibrateAverage();
 		
-		
+		while(true){
 		  //Look for first light
 		  lookForLight(values.getMaxValue());
 		  myFinch.stopWheels();
@@ -40,6 +40,7 @@ public class TwoLights extends Control {
 		  lookForAverage(values.getAverageValue());
 		  myFinch.stopWheels();
 		  myFinch.setLED(0, 255, 0, 2000);
+		}
 }
 
 	public void lookForLight(int value){

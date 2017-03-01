@@ -28,7 +28,7 @@ public class Cockroach extends Control{
 			//LightData currentData = new LightData(myFinch.getLightSensors());
 			
 			//If the light has been turned off roam slowly around the room
-			if(lightOn > currentData.getSum() + 30 || lightOff < currentData.getSum()-10){
+			if(lightOn > currentData.getSum() + 30 || lightOff < currentData.getSum()-20){
 				lookForLight(lightOn);
 			}
 			
@@ -46,7 +46,7 @@ public class Cockroach extends Control{
 			
 			//If the shade has been found stay there until the external light has been turned off or there is
 			//change in the environment and the shade is not the safe spot anymore
-			while(shade > currentData.getSum()-20){
+			while(shade > currentData.getSum()-30||lightOff > currentData.getSum()-20){
 				currentData = new LightData(myFinch.getLightSensors());
 				myFinch.setLED(0, 255, 0);
 			}
@@ -77,26 +77,41 @@ public class Cockroach extends Control{
 	
 		LightData currentData = new LightData(myFinch.getLightSensors());
 		
-		while((shade < currentData.getSum() - 20) || (lightOff < currentData.getSum()-20)){
+		while((shade < currentData.getSum() - 30) || (lightOff < currentData.getSum()-20)){
 			
 			/*if(currentData.getSum() < maxValue - 20 ) {
 				return;
 			}*/
-			if((currentData.getLeft()>currentData.getRight()+15)&&(currentData.getLeft()*2-10<shade)
-				||(currentData.getLeft()+15<currentData.getRight())&&(currentData.getRight()*2-10<shade)){
-				findLightOrShade(false);
+			if(((currentData.getLeft()>currentData.getRight()+30)&&(currentData.getRight()*2-30<shade))
+				||((currentData.getLeft()+30<currentData.getRight())&&(currentData.getLeft()*2-30<shade))){
+				myFinch.stopWheels();
+				myFinch.sleep(1000);
+				//findLightOrShade(false);
+				for(int i = 0; i < 3 ; i++){
+					lightDecision(false);
+				}
+				myFinch.setWheelVelocities(200, 200, 300);
+				myFinch.setLED(0,0,255,3000);
 				return;
-			}
-			else{
-				avoidObstacle(false);
-				lightDecisionTest(false, 170);
-
 			}
 			
 			currentData = new LightData(myFinch.getLightSensors());
+			
+			if(shade > currentData.getSum() - 30 || lightOff > currentData.getSum()-20){
+				myFinch.stopWheels();
+				myFinch.sleep(1000);
+				//findLightOrShade(false);
+				for(int i = 0; i < 3 ; i++){
+					lightDecision(false);
+				}
+				myFinch.setWheelVelocities(200, 200, 300);
+				myFinch.setLED(0,0,255,3000);
+				return;
+			}
+			
+			avoidObstacle(false);
+			lightDecisionTest(false, 170);			
 			myFinch.setLED(255, 0, 0);
 		}
 	}
-
-	
 }

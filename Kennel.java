@@ -20,8 +20,8 @@ public class Kennel extends Control {
 	public void kennelInABox() throws InterruptedException {
 		
 		Calibration values = new Calibration(myFinch);
-		/*values.calibrateMin();
-		values.calibrateMax();*/
+		values.calibrateMin();
+		//values.calibrateMax();
 		System.out.println("Enter number of lights: ");
 		Scanner in = new Scanner(System.in);
 		int numLights = in.nextInt();
@@ -33,7 +33,7 @@ public class Kennel extends Control {
 		}
 		
 		Collections.sort(lightValues);
-		System.out.println(lightValues.elementAt(0)+" "+lightValues.elementAt(1));
+		//System.out.println(lightValues.elementAt(0)+" "+lightValues.elementAt(1));
 		
 		
 		//Start a battery thread that discharges the Finch
@@ -93,9 +93,19 @@ public class Kennel extends Control {
 		
 		LightData currentData = new LightData(myFinch.getLightSensors());
 		
-		while(vals.elementAt(index) > currentData.getSum() + 10) {
+		boolean[] obstacle = myFinch.getObstacleSensors();
 		
-			System.out.println("while loop entered");
+		while(vals.elementAt(index) > currentData.getSum() + 10) {
+			
+			obstacle = myFinch.getObstacleSensors();
+			
+			if(obstacle[0] || obstacle[1]) {
+				lowBattery.stopThread();
+				myFinch.setWheelVelocities(-200, -200, 100);
+				return;
+			}
+		
+			//System.out.println("while loop entered");
 			
 			avoidObstacle(true);
 			//lightDecisionTest(true, batteryToSpeed(battery));
@@ -110,14 +120,15 @@ public class Kennel extends Control {
 		}
 		
 		myFinch.stopWheels();
-		myFinch.setLED(255, 0, 0, 1000);
+		myFinch.setLED(255, 0, 0, 500);
 		goStraightKennel();
 		LightData newData = new LightData(myFinch.getLightSensors());
-		boolean[] obstacle = myFinch.getObstacleSensors();
+		
+		obstacle = myFinch.getObstacleSensors();
 		if(newData.getSum() > vals.elementAt(index) - 10) {
 			if(obstacle[0]||obstacle[1]){
 				lowBattery.stopThread();
-				myFinch.setWheelVelocities(-200, -200, 200);
+				myFinch.setWheelVelocities(-200, -200, 100);
 				return;
 			}
 			index++;
@@ -130,7 +141,7 @@ public class Kennel extends Control {
 	}
 	
 	public void goStraightKennel(){
-		int speed = 240;
+		int speed = 160;
 		int duration = 500;
 		myFinch.setWheelVelocities(speed, speed+3, duration);
 	}

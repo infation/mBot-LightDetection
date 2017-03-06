@@ -9,30 +9,30 @@ import edu.cmu.ri.createlab.terk.robot.finch.Finch;
 public class Kennel extends Control {
 
 	private Finch myFinch;
+	private Calibration values;
+	Vector<Integer> lightValues;
 	
 	public Kennel(Finch myFinch) {
 		super(myFinch);
 		this.myFinch = myFinch;
-		// TODO Auto-generated constructor stub
-	}
-	
-	
-	public void kennelInABox() throws InterruptedException {
-		
-		Calibration values = new Calibration(myFinch);
+		values = new Calibration(myFinch);
 		values.calibrateMin();
-		//values.calibrateMax();
 		System.out.println("Enter number of lights: ");
 		Scanner in = new Scanner(System.in);
 		int numLights = in.nextInt();
 		
-		Vector<Integer> lightValues = new Vector<Integer>();
+		lightValues = new Vector<Integer>();
 		
 		for(int i = 0; i < numLights; ++i) {
 			lightValues.add(values.calibrateLight());
 		}
 		
 		Collections.sort(lightValues);
+		// TODO Auto-generated constructor stub
+	}
+	
+	
+	public void kennelInABox() throws InterruptedException {
 		//System.out.println(lightValues.elementAt(0)+" "+lightValues.elementAt(1));
 		
 		
